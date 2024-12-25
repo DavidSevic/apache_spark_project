@@ -1,6 +1,5 @@
 from pyspark import SparkContext
 
-import time
 from timeit import default_timer as timer
 
 #### Driver program
@@ -28,7 +27,7 @@ column_dict = {column: i for i, column in enumerate(column_list)}
 # Constants for event types
 EVENT_ADD = 0
 EVENT_REMOVE = 1
-EVENT_UPDATE = 3
+EVENT_UPDATE = 2
 
 # Start recording the execution time
 start = timer()
@@ -42,16 +41,13 @@ entries = filtered.map(lambda x : x.split(','))
 entries.cache()
 
 # Remove the duplicates, to get the real distribution
-# Map the entries by (machine_id, row), so that they can be reduced afterwards
-mapped_entries = entries.map(lambda row: (row[column_dict['machine_ID']], row))
-# Reduce by key to keep the first occurence of duplicate rows
+# Map the entries by (machine_ID, capacity_CPU), so that they can be reduced afterwards
+mapped_entries = entries.map(lambda row: (row[column_dict['machine_ID']], row[column_dict['capacity_CPU']]))
+# Reduce by key to keep the first occurence of duplicate rows by machine_ID
 distinct_entries = mapped_entries.reduceByKey(lambda row1, row2: row1).map(lambda x: x[1])
 
-# Keep only the cpu_capacities
-cpu_capacities = distinct_entries.map(lambda x: x[column_dict['capacity_CPU']])
-
 # Count by capacity_CPU
-cpu_distributions = cpu_capacities.countByValue()
+cpu_distributions = distinct_entries.countByValue()
 for capacity, count in sorted(cpu_distributions.items()):
     print(f"CPU capacity: {capacity}, count: {count}")
 
