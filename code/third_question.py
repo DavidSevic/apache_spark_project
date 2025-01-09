@@ -46,8 +46,8 @@ task_entries = rdd_tasks.map(lambda x : x.split(','))
 
 # Since we do the same analysis for both jobs and tasks, we will combine their scheduling_class data
 # Mapping to keep only the scheduling_class column
-jobs_data = rdd_jobs.map(lambda row: row[job_column_dict['scheduling_class']])
-tasks_data = rdd_tasks.map(lambda row: row[task_column_dict['scheduling_class']])
+jobs_data = job_entries.map(lambda row: row[job_column_dict['scheduling_class']])
+tasks_data = task_entries.map(lambda row: row[task_column_dict['scheduling_class']])
 
 # Combine the data
 combined_entries = jobs_data.union(tasks_data)
